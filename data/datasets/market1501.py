@@ -66,7 +66,7 @@ class Market1501(BaseImageDataset):
             raise RuntimeError("'{}' is not available".format(self.gallery_dir))
 
     def _process_train_dir(self, dir_path, relabel=False):
-        img_paths = glob.glob(osp.join(dir_path, '*.jpg'))
+        img_paths = glob.glob(osp.join(dir_path, '*.jpg')) + glob.glob(osp.join(dir_path, '*.png'))
         pattern = re.compile(r'([-\d]+)_c(\d)')
 
         pid_container = set()
@@ -80,8 +80,8 @@ class Market1501(BaseImageDataset):
         for img_path in img_paths:
             pid, camid = map(int, pattern.search(img_path).groups())
             if pid == -1: continue  # junk images are just ignored
-            assert 0 <= pid <= 1501  # pid == 0 means background
-            assert 1 <= camid <= 6
+            # assert 0 <= pid <= 1501  # pid == 0 means background
+            # assert 1 <= camid <= 6
             camid -= 1  # index starts from 0
             if relabel: pid = pid2label[pid]
             #if 'train' in dir_path:
@@ -91,7 +91,7 @@ class Market1501(BaseImageDataset):
         return dataset
     
     def _process_test_dir(self, dir_path, relabel=False):
-        img_paths = glob.glob(osp.join(dir_path, '*.jpg'))
+        img_paths = glob.glob(osp.join(dir_path, '*.jpg')) + glob.glob(osp.join(dir_path, '*.png'))
         pattern = re.compile(r'([-\d]+)_c(\d)')
 
         pid_container = set()
@@ -105,8 +105,8 @@ class Market1501(BaseImageDataset):
         for img_path in img_paths:
             pid, camid = map(int, pattern.search(img_path).groups())
             if pid == -1: continue  # junk images are just ignored
-            assert 0 <= pid <= 1501  # pid == 0 means background
-            assert 1 <= camid <= 6
+            # assert 0 <= pid <= 1501  # pid == 0 means background
+            # assert 1 <= camid <= 6
             camid -= 1  # index starts from 0
             if relabel: pid = pid2label[pid]
             dataset.append((img_path, pid, camid, ''))

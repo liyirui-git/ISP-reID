@@ -4,7 +4,7 @@ MODEL:
   METRIC_LOSS_TYPE: 'triplet'
   IF_LABELSMOOTH: 'on'
   IF_WITH_CENTER: 'on'
-  
+  DEVICE_ID: ('0')
   NAME: HRNet32
   
   EXTRA:
@@ -65,10 +65,11 @@ CLUSTERING:
   PART_NUM: 7
 
 DATASETS:
-  NAMES: ('market1501')
-  PSEUDO_LABEL_SUBDIR: ('train_mask_annotations')
+  NAMES: ('dukemtmc')
+  PSEUDO_LABEL_SUBDIR: ('train_pseudo_labels-ISP-7')
   PREDICTED_GT_SUBDIR: ('bounding_box_train_parsing_pgt')
-  
+  ROOT_DIR: ('/home/liyirui/PycharmProjects/dataset/')
+
 DATALOADER:
   SAMPLER: 'softmax_triplet'
   NUM_INSTANCE: 4
@@ -111,8 +112,8 @@ SOLVER:
 TEST:
   IMS_PER_BATCH: 128
   RE_RANKING: 'no'
-  WEIGHT: "path"
+  WEIGHT: "/home/liyirui/PycharmProjects/ISP-reID/models/ISP-Duke/HRNet32_model_120.pth"
   NECK_FEAT: 'after'
   FEAT_NORM: 'yes'
 
-OUTPUT_DIR: "./"
+OUTPUT_DIR: "./log/ISP-Duke-7-test"
