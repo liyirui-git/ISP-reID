@@ -14,14 +14,7 @@ import numpy as np
 
 class CUHK03_NP_labeled(BaseImageDataset):
     """
-    Market1501
-    Reference:
-    Zheng et al. Scalable Person Re-identification: A Benchmark. ICCV 2015.
-    URL: http://www.liangzheng.org/Project/project_reid.html
-
-    Dataset statistics:
-    # identities: 1501 (+1 for background)
-    # images: 12936 (train) + 3368 (query) + 15913 (gallery)
+    CUHK03_NP_labeled
     """
     dataset_dir = 'cuhk03-np/labeled'
 

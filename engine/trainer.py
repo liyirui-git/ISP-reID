@@ -321,25 +321,30 @@ def do_train_with_center(
             
             #evaluate the pseudo-part-labels
 
-            # if cfg.DATASETS.NAMES=='market1501':
-            #     pred_dir = os.path.join(cfg.DATASETS.ROOT_DIR, 'Market-1501', cfg.DATASETS.PSEUDO_LABEL_SUBDIR)
-            #     gt_dir = os.path.join(cfg.DATASETS.ROOT_DIR, 'Market-1501', cfg.DATASETS.PREDICTED_GT_SUBDIR)
-            #     compute_IoU(pred_dir, gt_dir, cfg.CLUSTERING.PART_NUM)
+            if cfg.DATASETS.NAMES=='market1501':
+                pred_dir = os.path.join(cfg.DATASETS.ROOT_DIR, 'Market-1501', cfg.DATASETS.PSEUDO_LABEL_SUBDIR)
+                gt_dir = os.path.join(cfg.DATASETS.ROOT_DIR, 'Market-1501', cfg.DATASETS.PREDICTED_GT_SUBDIR)
+                compute_IoU(pred_dir, gt_dir, cfg.CLUSTERING.PART_NUM)
+            
+            elif cfg.DATASETS.NAMES=='bikeperson':
+                pred_dir = os.path.join(cfg.DATASETS.ROOT_DIR, 'BikePerson-700', cfg.DATASETS.PSEUDO_LABEL_SUBDIR)
+                gt_dir = os.path.join(cfg.DATASETS.ROOT_DIR, 'BikePerson-700', cfg.DATASETS.PREDICTED_GT_SUBDIR)
+                compute_IoU(pred_dir, gt_dir, cfg.CLUSTERING.PART_NUM)
                  
-            # elif cfg.DATASETS.NAMES=='dukemtmc':
-            #     pred_dir = os.path.join(cfg.DATASETS.ROOT_DIR, 'DukeMTMC-reID', cfg.DATASETS.PSEUDO_LABEL_SUBDIR)
-            #     gt_dir = os.path.join(cfg.DATASETS.ROOT_DIR, 'DukeMTMC-reID', cfg.DATASETS.PREDICTED_GT_SUBDIR)
-            #     compute_IoU(pred_dir, gt_dir, cfg.CLUSTERING.PART_NUM)
+            elif cfg.DATASETS.NAMES=='dukemtmc':
+                pred_dir = os.path.join(cfg.DATASETS.ROOT_DIR, 'DukeMTMC-reID', cfg.DATASETS.PSEUDO_LABEL_SUBDIR)
+                gt_dir = os.path.join(cfg.DATASETS.ROOT_DIR, 'DukeMTMC-reID', cfg.DATASETS.PREDICTED_GT_SUBDIR)
+                compute_IoU(pred_dir, gt_dir, cfg.CLUSTERING.PART_NUM)
                 
-            # elif cfg.DATASETS.NAMES=='cuhk03_np_labeled':
-            #     pred_dir = os.path.join(cfg.DATASETS.ROOT_DIR, 'cuhk03-np/labeled', cfg.DATASETS.PSEUDO_LABEL_SUBDIR)
-            #     gt_dir = os.path.join(cfg.DATASETS.ROOT_DIR, 'cuhk03-np/labeled', cfg.DATASETS.PREDICTED_GT_SUBDIR)
-            #     compute_IoU(pred_dir, gt_dir, cfg.CLUSTERING.PART_NUM)
+            elif cfg.DATASETS.NAMES=='cuhk03_np_labeled':
+                pred_dir = os.path.join(cfg.DATASETS.ROOT_DIR, 'cuhk03-np/labeled', cfg.DATASETS.PSEUDO_LABEL_SUBDIR)
+                gt_dir = os.path.join(cfg.DATASETS.ROOT_DIR, 'cuhk03-np/labeled', cfg.DATASETS.PREDICTED_GT_SUBDIR)
+                compute_IoU(pred_dir, gt_dir, cfg.CLUSTERING.PART_NUM)
                 
-            # elif cfg.DATASETS.NAMES=='cuhk03_np_detected':
-            #     pred_dir = os.path.join(cfg.DATASETS.ROOT_DIR, 'cuhk03-np/detected', cfg.DATASETS.PSEUDO_LABEL_SUBDIR)
-            #     gt_dir = os.path.join(cfg.DATASETS.ROOT_DIR, 'cuhk03-np/detected', cfg.DATASETS.PREDICTED_GT_SUBDIR)
-            #     compute_IoU(pred_dir, gt_dir, cfg.CLUSTERING.PART_NUM)                        
+            elif cfg.DATASETS.NAMES=='cuhk03_np_detected':
+                pred_dir = os.path.join(cfg.DATASETS.ROOT_DIR, 'cuhk03-np/detected', cfg.DATASETS.PSEUDO_LABEL_SUBDIR)
+                gt_dir = os.path.join(cfg.DATASETS.ROOT_DIR, 'cuhk03-np/detected', cfg.DATASETS.PREDICTED_GT_SUBDIR)
+                compute_IoU(pred_dir, gt_dir, cfg.CLUSTERING.PART_NUM)                        
 
             torch.cuda.empty_cache()   
     
@@ -456,6 +461,11 @@ def do_train(
             if cfg.DATASETS.NAMES=='market1501':
                 pred_dir = os.path.join(cfg.DATASETS.ROOT_DIR, 'Market-1501', cfg.DATASETS.PSEUDO_LABEL_SUBDIR)
                 gt_dir = os.path.join(cfg.DATASETS.ROOT_DIR, 'Market-1501', cfg.DATASETS.PREDICTED_GT_SUBDIR)
+                compute_IoU(pred_dir, gt_dir, cfg.CLUSTERING.PART_NUM)
+
+            elif cfg.DATASETS.NAMES=='bikeperson':
+                pred_dir = os.path.join(cfg.DATASETS.ROOT_DIR, 'BikePerson-700', cfg.DATASETS.PSEUDO_LABEL_SUBDIR)
+                gt_dir = os.path.join(cfg.DATASETS.ROOT_DIR, 'BikePerson-700', cfg.DATASETS.PREDICTED_GT_SUBDIR)
                 compute_IoU(pred_dir, gt_dir, cfg.CLUSTERING.PART_NUM)
                  
             elif cfg.DATASETS.NAMES=='dukemtmc':

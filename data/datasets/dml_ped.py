@@ -1,6 +1,5 @@
 # encoding: utf-8
 
-
 import glob
 import re
 
@@ -12,14 +11,14 @@ from .bases import BaseImageDataset
 import numpy as np
 
 
-class CUHK03_NP_detected(BaseImageDataset):
+class DML_PED(BaseImageDataset):
     """
-    CUHK03_NP_detected
+    DML_PED
     """
-    dataset_dir = 'cuhk03-np/detected'
+    dataset_dir = 'dml_ped'
 
-    def __init__(self, root='/data2/kzhu/', pseudo_label_subdir='train_mask_annotations', part_num=7, verbose=True, **kwargs):
-        super(CUHK03_NP_detected, self).__init__()
+    def __init__(self, root='/data2/kzhu/', pseudo_label_subdir='train_mask_annotations', part_num=6, verbose=True, **kwargs):
+        super(DML_PED, self).__init__()
         self.dataset_dir = osp.join(root, self.dataset_dir)
         self.train_dir = osp.join(self.dataset_dir, 'bounding_box_train')
         self.query_dir = osp.join(self.dataset_dir, 'query')
@@ -37,7 +36,7 @@ class CUHK03_NP_detected(BaseImageDataset):
         gallery = self._process_test_dir(self.gallery_dir, relabel=False)
 
         if verbose:
-            print("=> cuhk03_np_detected loaded")
+            print("=> DML_PED loaded")
             self.print_dataset_statistics(train, query, gallery)
 
         self.train = train
@@ -60,7 +59,7 @@ class CUHK03_NP_detected(BaseImageDataset):
             raise RuntimeError("'{}' is not available".format(self.gallery_dir))
 
     def _process_train_dir(self, dir_path, relabel=False):
-        img_paths = glob.glob(osp.join(dir_path, '*.png'))
+        img_paths = glob.glob(osp.join(dir_path, '*.jpg')) + glob.glob(osp.join(dir_path, '*.png'))
         pattern = re.compile(r'([-\d]+)_c(\d)')
 
         pid_container = set()
@@ -74,28 +73,36 @@ class CUHK03_NP_detected(BaseImageDataset):
         for img_path in img_paths:
             pid, camid = map(int, pattern.search(img_path).groups())
             if pid == -1: continue  # junk images are just ignored
+            # assert 0 <= pid <= 1501  # pid == 0 means background
+            # assert 1 <= camid <= 6
             camid -= 1  # index starts from 0
             if relabel: pid = pid2label[pid]
+            #if 'train' in dir_path:
+            #    hit[pid]=True
             pseudo_labels_path=osp.splitext(osp.join(self.pseudo_label_dir, osp.basename(img_path)))[0]+'.png'
             dataset.append((img_path, pid, camid, pseudo_labels_path))
         return dataset
     
     def _process_test_dir(self, dir_path, relabel=False):
-        img_paths = glob.glob(osp.join(dir_path, '*.png'))
+        img_paths = glob.glob(osp.join(dir_path, '*.jpg')) + glob.glob(osp.join(dir_path, '*.png'))
         pattern = re.compile(r'([-\d]+)_c(\d)')
 
         pid_container = set()
         for img_path in img_paths:
             pid, _ = map(int, pattern.search(img_path).groups())
+            if pid == -1: continue  # junk images are just ignored
             pid_container.add(pid)
         pid2label = {pid: label for label, pid in enumerate(pid_container)}
 
         dataset = []
         for img_path in img_paths:
             pid, camid = map(int, pattern.search(img_path).groups())
-            #assert 1 <= camid <= 8
+            if pid == -1: continue  # junk images are just ignored
+            # assert 0 <= pid <= 1501  # pid == 0 means background
+            # assert 1 <= camid <= 6
             camid -= 1  # index starts from 0
             if relabel: pid = pid2label[pid]
             dataset.append((img_path, pid, camid, ''))
 
         return dataset
+    

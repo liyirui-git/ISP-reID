@@ -9,6 +9,9 @@ from .market1501 import Market1501
 from .dataset_loader import ImageDataset, ImageDataset_train
 from .cuhk03_np_labeled import CUHK03_NP_labeled
 from .cuhk03_np_detected import CUHK03_NP_detected
+from .bikeperson import BikePerson
+from .dml_ped import DML_PED
+
 
 __factory = {
     'market1501': Market1501,
@@ -16,6 +19,8 @@ __factory = {
     'occluded_dukemtmc': OccludedDukeMTMCreID,
     'cuhk03_np_labeled': CUHK03_NP_labeled,
     'cuhk03_np_detected': CUHK03_NP_detected,
+    'bikeperson': BikePerson,
+    'dml_ped': DML_PED
 }
 
 

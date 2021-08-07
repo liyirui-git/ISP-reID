@@ -213,6 +213,8 @@ _C.TEST.NECK_FEAT = 'after'
 _C.TEST.FEAT_NORM = 'yes'
 # Whether use the aligned feature matching
 _C.TEST.WITH_ARM = False
+# Whether export image features
+_C.TEST.EXPORT_FEATURE = False
 
 # ---------------------------------------------------------------------------- #
 # Misc options

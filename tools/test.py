@@ -56,7 +56,7 @@ def main():
     model = build_model(cfg, num_classes)
     model.load_param(cfg.TEST.WEIGHT)
 
-    inference(cfg, model, val_loader, num_query)
+    inference(cfg, model, val_loader, num_query, output_dir=output_dir)
 
 
 if __name__ == '__main__':
