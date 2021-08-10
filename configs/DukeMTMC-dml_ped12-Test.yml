@@ -112,7 +112,7 @@ SOLVER:
 TEST:
   IMS_PER_BATCH: 1
   RE_RANKING: 'no'
-  WEIGHT: "/home/liyirui/PycharmProjects/ISP-reID/log/ISP-dml_ped25-7-120/HRNet32_model_80.pth"
+  WEIGHT: "/home/liyirui/PycharmProjects/ISP-reID/log/ISP-dml_ped25-7-120-backup/HRNet32_model_120.pth"
   NECK_FEAT: 'after'
   FEAT_NORM: 'yes'
   EXPORT_FEATURE: True

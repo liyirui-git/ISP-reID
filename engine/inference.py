@@ -11,8 +11,13 @@ from ignite.engine import Engine
 
 from utils.reid_metric import R1_mAP, R1_mAP_arm
 
+img_name_dir = {}
+img_name_list = []
+feature_numpy = numpy.zeros((9462, 2048))
 
-def create_supervised_evaluator(cfg, model, metrics, img_name_dir, img_name_list, feature_list,
+index = 0
+
+def create_supervised_evaluator(cfg, model, metrics, 
                                 device=None, with_arm=False):
     """
     Factory function for creating an evaluator for supervised models
@@ -27,7 +32,7 @@ def create_supervised_evaluator(cfg, model, metrics, img_name_dir, img_name_list
     """
     if device:
         model.to(device)
-
+    
     def _inference(engine, batch):
         '''
         batch is consist of:
@@ -39,6 +44,8 @@ def create_supervised_evaluator(cfg, model, metrics, img_name_dir, img_name_list
         Can get a reference from /ISP-reID/data/collate_batch.py 
         in "val_collate_fn()".
         '''
+        global index
+
         model.eval()
         with torch.no_grad():
             # data: torch.Size([batch_size, 3, 256, 128])
@@ -54,7 +61,10 @@ def create_supervised_evaluator(cfg, model, metrics, img_name_dir, img_name_list
             else:
                 feat, _ = model(data)
                 if cfg.TEST.EXPORT_FEATURE and img_name not in img_name_dir:
-                    feature_list.append(feat)
+                    feat_cpu = feat.cpu().numpy()
+                    for i in range(2048):
+                        feature_numpy[index][i] = feat_cpu[0][i]
+                    index = index + 1
                     img_name_dir[img_name] = 1
                 return feat, pids, camids
 
@@ -73,9 +83,6 @@ def inference(
         num_query,
         output_dir
 ):
-    img_name_dir = {}
-    img_name_list = []
-    feature_list = []
 
     device = cfg.MODEL.DEVICE
     with_arm = cfg.TEST.WITH_ARM
@@ -88,13 +95,12 @@ def inference(
             assert cfg.TEST.IMS_PER_BATCH == 1, "cfg.TEST.IMS_PER_BATCH need set to 1"
         if with_arm:
             evaluator = create_supervised_evaluator \
-            (cfg, model, metrics={'r1_mAP': R1_mAP_arm(num_query, max_rank=50, feat_norm=cfg.TEST.FEAT_NORM)},
-             img_name_dir=img_name_dir, img_name_list=img_name_list, feature_list=feature_list, device=device, 
-             with_arm=with_arm)
+            (cfg, model, metrics={'r1_mAP': R1_mAP_arm(num_query, max_rank=50, feat_norm=cfg.TEST.FEAT_NORM)}, device=device, 
+            with_arm=with_arm)
         else:
             evaluator = create_supervised_evaluator \
             (cfg, model, metrics={'r1_mAP': R1_mAP(num_query, max_rank=50, feat_norm=cfg.TEST.FEAT_NORM)},
-             img_name_dir=img_name_dir, img_name_list=img_name_list, feature_list=feature_list, device=device, 
+             device=device, 
              with_arm=with_arm)
 
     evaluator.run(val_loader)
@@ -106,7 +112,7 @@ def inference(
     
     # transfor list to numpy and restore
     if cfg.TEST.EXPORT_FEATURE:
-        print("Number of feature is " + str(len(feature_list)))
-        print("Number of image path is " + str(len(img_name_list)))
+        # print("Number of feature is " + str(len(feature_list)))
+        # print("Number of image path is " + str(len(img_name_list)))
         numpy.save(os.path.join(output_dir, "image_paths_of_features_new.npy"), array(img_name_list))
-        numpy.save(os.path.join(output_dir, "features_new.npy"), array(feature_list))
+        numpy.save(os.path.join(output_dir, "features_new.npy"), feature_numpy)
