@@ -1,3 +1,9 @@
+'''
+Author: Li, Yirui
+Date: 2021-08-07
+Description: 
+FilePath: /liyirui/PycharmProjects/ISP-reID/data/build.py
+'''
 # encoding: utf-8
 
 
@@ -20,6 +26,9 @@ def make_data_loader(cfg):
         dataset = init_dataset(cfg.DATASETS.NAMES, pseudo_label_subdir=cfg.DATASETS.PSEUDO_LABEL_SUBDIR, part_num=cfg.CLUSTERING.PART_NUM, root=cfg.DATASETS.ROOT_DIR)
 
     num_classes = dataset.num_train_pids
+    # You can from train_set[i] get "img, pid, camid, img_path, align_target, align_target_path".
+    # Note that align_target is pseudo_image, and align_target_path is pseudo_image_path
+    # So, pseudo_image is containing in train set and you can get it from train_loader.
     train_set = ImageDataset_train(dataset.train, train_transforms)
     if cfg.DATALOADER.SAMPLER == 'softmax':
         train_loader = DataLoader(

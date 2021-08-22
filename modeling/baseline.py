@@ -90,17 +90,17 @@ class Baseline(nn.Module):
             
 
     def forward(self, x):
-        
-        y_part, y_global, y_fore, clustering_feat_map, part_pd_score = self.base(x)  # (b, 2048, 1, 1)
-        y_part = y_part.view(y_part.shape[0], -1)  # flatten to (bs, 2048)
-        y_global = y_global.view(y_global.shape[0], -1)
-        y_fore = y_fore.view(y_fore.shape[0], -1)
+        # backbone in base but base not only contain backbone 
+        y_part, y_global, y_fore, clustering_feat_map, part_pd_score = self.base(x)  # (b, 256*(part_num-1), 1, 1) b-> batch_size
 
+        y_part = y_part.view(y_part.shape[0], -1)       # flatten to (bs, 256*(part_num-1))  `bs` means batch size
+        y_global = y_global.view(y_global.shape[0], -1) # flatten to (bs, 256*(part_num-1))  `bs` means batch size
+        y_fore = y_fore.view(y_fore.shape[0], -1)       # flatten to (bs, 256*(part_num-1))  `bs` means batch size
         
         if self.neck == 'bnneck':
-            feat_part = self.bottleneck_part(y_part)
-            feat_global = self.bottleneck_global(y_global)
-            feat_fore = self.bottleneck_fore(y_fore)
+            feat_part = self.bottleneck_part(y_part)        # size not changed
+            feat_global = self.bottleneck_global(y_global)  # size from (bs, 256*(part_num -1)) to (bs, 256)
+            feat_fore = self.bottleneck_fore(y_fore)        # size from (bs, 256*(part_num -1)) to (bs, 256)
 
         if self.training:
             cls_score_part = self.classifier_part(feat_part)

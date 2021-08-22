@@ -56,6 +56,8 @@ def create_supervised_evaluator(cfg, model, metrics,
                 if img_name not in img_name_dir: img_name_list.append(img_name)
             data = data.cuda()
             if with_arm:
+                # g_f_feat.Size([batch_size, 512]) 这里是global_feat与foreground_feat连了起来
+                # g_f_feat.Size([batch_size, 6, 256]) 这里是6个分开的part_feature
                 g_f_feat, part_feat, part_visible, _ = model(data)
                 return g_f_feat, part_feat, part_visible, pids, camids
             else:
@@ -111,7 +113,7 @@ def inference(
         logger.info("CMC curve, Rank-{:<3}:{:.1%}".format(r, cmc[r - 1]))
     
     # transfor list to numpy and restore
-    if cfg.TEST.EXPORT_FEATURE:
+    if cfg.TEST.EXPORT_FEATURE and not cfg.TEST.WITH_ARM:
         # print("Number of feature is " + str(len(feature_list)))
         # print("Number of image path is " + str(len(img_name_list)))
         numpy.save(os.path.join(output_dir, "image_paths_of_features_new.npy"), array(img_name_list))

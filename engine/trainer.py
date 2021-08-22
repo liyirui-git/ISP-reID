@@ -42,7 +42,7 @@ def create_supervised_trainer_with_center(model, center_criterion_part, center_c
         model.to(device)
 
     def _update(engine, batch):
-        model.train()
+        model.train()   # 将当前模块设置成训练模式
         optimizer.zero_grad()
         optimizer_center.zero_grad()
         img, cls_target, parsing_target = batch

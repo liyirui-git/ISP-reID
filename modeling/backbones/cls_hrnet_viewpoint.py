@@ -1,3 +1,9 @@
+'''
+Author: Li, Yirui
+Date: 2021-08-18
+Description: 
+FilePath: /liyirui/PycharmProjects/ISP-reID/modeling/backbones/cls_hrnet_viewpoint.py
+'''
 
 from __future__ import absolute_import
 from __future__ import division
