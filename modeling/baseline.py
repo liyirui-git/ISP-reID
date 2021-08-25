@@ -115,9 +115,9 @@ class Baseline(nn.Module):
                     visible_part=[]
                     for pic in range(part_visible.shape[0]):
                         visible_part.append([int(part in part_visible[pic]) for part in range(1, self.part_num)])
-                    return torch.cat((feat_global, feat_fore), 1), feat_part.view(feat_part.shape[0], self.part_num-1, self.in_planes), visible_part, clustering_feat_map
+                    return torch.cat((feat_global, feat_fore), 1), feat_part.view(feat_part.shape[0], self.part_num-1, self.in_planes), visible_part, clustering_feat_map, part_pd_score
                 else:
-                    return torch.cat((feat_part, feat_global, feat_fore), 1), clustering_feat_map
+                    return torch.cat((feat_part, feat_global, feat_fore), 1), clustering_feat_map, part_pd_score
         
     def load_param(self, trained_path):
         param_dict = torch.load(trained_path)

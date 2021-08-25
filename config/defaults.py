@@ -215,6 +215,8 @@ _C.TEST.FEAT_NORM = 'yes'
 _C.TEST.WITH_ARM = False
 # Whether export image features
 _C.TEST.EXPORT_FEATURE = False
+# Whether export test images' part prediction result image
+_C.TEST.EXPORT_PART_PD_RESULT = False
 
 # ---------------------------------------------------------------------------- #
 # Misc options

@@ -6,15 +6,15 @@ from numpy.core.defchararray import array
 import torch
 import numpy
 import os
+import cv2
 
 from ignite.engine import Engine
 
 from utils.reid_metric import R1_mAP, R1_mAP_arm
 
-img_name_dir = {}
-img_name_list = []
-feature_numpy = numpy.zeros((9462, 2048))
-
+img_part_pd_dir = {}
+img_feat_dir = {}
+feature_numpy = numpy.array([])
 index = 0
 
 def create_supervised_evaluator(cfg, model, metrics, 
@@ -44,30 +44,36 @@ def create_supervised_evaluator(cfg, model, metrics,
         Can get a reference from /ISP-reID/data/collate_batch.py 
         in "val_collate_fn()".
         '''
-        global index
+        global feature_numpy
 
         model.eval()
         with torch.no_grad():
             # data: torch.Size([batch_size, 3, 256, 128])
             data, pids, camids, img_paths = batch
-            # only take image_name
-            if cfg.TEST.EXPORT_FEATURE:
-                img_name = img_paths[0].split("/")[-1]
-                if img_name not in img_name_dir: img_name_list.append(img_name)
             data = data.cuda()
             if with_arm:
                 # g_f_feat.Size([batch_size, 512]) 这里是global_feat与foreground_feat连了起来
                 # g_f_feat.Size([batch_size, 6, 256]) 这里是6个分开的part_feature
-                g_f_feat, part_feat, part_visible, _ = model(data)
+                g_f_feat, part_feat, part_visible, _, part_pd_score = model(data)
                 return g_f_feat, part_feat, part_visible, pids, camids
             else:
-                feat, _ = model(data)
-                if cfg.TEST.EXPORT_FEATURE and img_name not in img_name_dir:
-                    feat_cpu = feat.cpu().numpy()
-                    for i in range(2048):
-                        feature_numpy[index][i] = feat_cpu[0][i]
-                    index = index + 1
-                    img_name_dir[img_name] = 1
+                feat, _, part_pd_score = model(data)
+                # part_pd_score ==> torch.Size([batch_size, 7, 64, 32])
+                part_pd_score = part_pd_score.cpu()
+                part_pd_score = part_pd_score[0].numpy()
+                # only take image_name
+                img_name = img_paths[0].split("/")[-1]
+                if cfg.TEST.EXPORT_PART_PD_RESULT:
+                    if img_name not in img_part_pd_dir: 
+                        img_part_pd_dir[img_name] = part_pd_score
+                if cfg.TEST.EXPORT_FEATURE:
+                    if img_name not in img_feat_dir:
+                        img_feat_dir[img_name] = 1
+                        feat_cpu = feat.cpu()
+                        if len(feature_numpy) == 0:
+                            feature_numpy = feat_cpu
+                        else:
+                            feature_numpy = numpy.r_[feature_numpy, feat_cpu]
                 return feat, pids, camids
 
     engine = Engine(_inference)
@@ -112,9 +118,44 @@ def inference(
     for r in [1, 5, 10]:
         logger.info("CMC curve, Rank-{:<3}:{:.1%}".format(r, cmc[r - 1]))
     
-    # transfor list to numpy and restore
-    if cfg.TEST.EXPORT_FEATURE and not cfg.TEST.WITH_ARM:
-        # print("Number of feature is " + str(len(feature_list)))
-        # print("Number of image path is " + str(len(img_name_list)))
-        numpy.save(os.path.join(output_dir, "image_paths_of_features_new.npy"), array(img_name_list))
+    logger.info("\nExport query and gallery feature begin: ")
+
+    # output query and gallery image features
+    if cfg.TEST.EXPORT_FEATURE:
+        print("Number of feature is " + str(len(feature_numpy)))
+        numpy.save(os.path.join(output_dir, "image_paths_of_features_new.npy"), array(list(img_feat_dir.keys())))
         numpy.save(os.path.join(output_dir, "features_new.npy"), feature_numpy)
+    logger.info("Finish!\n")
+
+    logger.info("\nExport part prediction of query and gallery begin: \n")
+    # output part prediction image 
+    if cfg.TEST.EXPORT_PART_PD_RESULT:
+        # print 1400 images in query of BikePerson-700
+        # max: 5.4795647
+        # min: -6.5543547
+        max_num, min_num = 4, -4
+        part_pd_image_folder = os.path.join(cfg.OUTPUT_DIR, "part_prediction")
+        if not os.path.exists(part_pd_image_folder):
+            os.mkdir(part_pd_image_folder) 
+        image_path_list = list(img_part_pd_dir.keys())
+        img = numpy.zeros((64,32), numpy.uint8)
+        # 使用白色填充图片区域,默认为黑色
+        img.fill(255)
+        for image_path in image_path_list:
+            part_pd_score_images = img_part_pd_dir[image_path]
+            # print(image_path)
+            for i in range(cfg.CLUSTERING.PART_NUM):
+                image = part_pd_score_images[i]
+                for j in range(64):
+                    for k in range(32):
+                        if image[j][k] > max_num:
+                            # print(image[j][k])
+                            image[j][k] = max_num
+                        if image[j][k] < min_num:
+                            # trans
+                            # print(image[j][k])
+                            image[j][k] = max_num
+                        img[j][k] = int((image[j][k] + max_num) * 255 / max_num / 2)
+                im_color=cv2.applyColorMap(cv2.convertScaleAbs(img,alpha=1),cv2.COLORMAP_JET)
+                cv2.imwrite(os.path.join(part_pd_image_folder, str(i)+"_"+image_path), im_color)
+    logger.info("Finish!\n")
