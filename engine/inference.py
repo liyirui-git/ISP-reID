@@ -67,8 +67,8 @@ def create_supervised_evaluator(cfg, model, metrics,
                     if img_name not in img_part_pd_dir: 
                         img_part_pd_dir[img_name] = part_pd_score
                 if cfg.TEST.EXPORT_FEATURE:
-                    if img_name not in img_feat_dir:
-                        img_feat_dir[img_name] = 1
+                    if img_paths[0] not in img_feat_dir:
+                        img_feat_dir[img_paths[0]] = 1
                         feat_cpu = feat.cpu()
                         if len(feature_numpy) == 0:
                             feature_numpy = feat_cpu
@@ -117,19 +117,18 @@ def inference(
     logger.info("mAP: {:.1%}".format(mAP))
     for r in [1, 5, 10]:
         logger.info("CMC curve, Rank-{:<3}:{:.1%}".format(r, cmc[r - 1]))
-    
-    logger.info("\nExport query and gallery feature begin: ")
 
     # output query and gallery image features
     if cfg.TEST.EXPORT_FEATURE:
+        logger.info("\nExport query and gallery feature begin: ")
         print("Number of feature is " + str(len(feature_numpy)))
         numpy.save(os.path.join(output_dir, "image_paths_of_features_new.npy"), array(list(img_feat_dir.keys())))
         numpy.save(os.path.join(output_dir, "features_new.npy"), feature_numpy)
-    logger.info("Finish!\n")
+        logger.info("Finish!\n")
 
-    logger.info("\nExport part prediction of query and gallery begin: \n")
     # output part prediction image 
     if cfg.TEST.EXPORT_PART_PD_RESULT:
+        logger.info("\nExport part prediction of query and gallery begin: \n")
         # print 1400 images in query of BikePerson-700
         # max: 5.4795647
         # min: -6.5543547
@@ -137,13 +136,13 @@ def inference(
         part_pd_image_folder = os.path.join(cfg.OUTPUT_DIR, "part_prediction")
         if not os.path.exists(part_pd_image_folder):
             os.mkdir(part_pd_image_folder) 
-        image_path_list = list(img_part_pd_dir.keys())
+        image_name_list = list(img_part_pd_dir.keys())
         img = numpy.zeros((64,32), numpy.uint8)
         # 使用白色填充图片区域,默认为黑色
         img.fill(255)
-        for image_path in image_path_list:
-            part_pd_score_images = img_part_pd_dir[image_path]
-            # print(image_path)
+        for image_name in image_name_list:
+            part_pd_score_images = img_part_pd_dir[image_name]
+            # print(image_name)
             for i in range(cfg.CLUSTERING.PART_NUM):
                 image = part_pd_score_images[i]
                 for j in range(64):
@@ -157,5 +156,5 @@ def inference(
                             image[j][k] = max_num
                         img[j][k] = int((image[j][k] + max_num) * 255 / max_num / 2)
                 im_color=cv2.applyColorMap(cv2.convertScaleAbs(img,alpha=1),cv2.COLORMAP_JET)
-                cv2.imwrite(os.path.join(part_pd_image_folder, str(i)+"_"+image_path), im_color)
-    logger.info("Finish!\n")
+                cv2.imwrite(os.path.join(part_pd_image_folder, str(i)+"_"+image_name), im_color)
+        logger.info("Finish!\n")

@@ -126,6 +126,8 @@ _C.DATASETS.NAMES = ('market1501')
 _C.DATASETS.ROOT_DIR = ('./data')
 _C.DATASETS.PSEUDO_LABEL_SUBDIR = ('train_pseudo_labels')
 _C.DATASETS.PREDICTED_GT_SUBDIR = ('bounding_box_train_parsing_pgt')
+# Dateset dicectory only used in result_visualize.py
+_C.DATASETS.DATASET_DIR = ('')
 
 # -----------------------------------------------------------------------------
 # DataLoader
