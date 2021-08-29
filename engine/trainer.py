@@ -126,13 +126,13 @@ def create_supervised_evaluator(model, metrics,
     def _inference(engine, batch):
         model.eval()
         with torch.no_grad():
-            data, pids, camids = batch
+            data, pids, camids, _ = batch
             data = data.cuda()
             if with_arm:
-                g_f_feat, part_feat, part_visible, _ = model(data)
+                g_f_feat, part_feat, part_visible, _, _ = model(data)
                 return g_f_feat, part_feat, part_visible, pids, camids
             else:
-                feat, _ = model(data)
+                feat, _, _ = model(data)
                 return feat, pids, camids
 
     engine = Engine(_inference)
@@ -161,9 +161,9 @@ def compute_features(clustering_loader, model, device, with_arm=False):
             batch_img = batch_img.to(device)
             #print(batch_img.shape)
             if with_arm:
-                _, _, _, batch_feats = model(batch_img)
+                _, _, _, batch_feats, _ = model(batch_img)
             else:
-                _, batch_feats = model(batch_img)
+                _, batch_feats, _ = model(batch_img)
             batch_feats=batch_feats.detach().cpu()
             feats.append(batch_feats)
             pids.extend(batch_pid)
