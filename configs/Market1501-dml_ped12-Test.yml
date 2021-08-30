@@ -1,6 +1,6 @@
 MODEL:
   PRETRAIN_CHOICE: 'imagenet'
-  PRETRAIN_PATH: '/home/liyirui/PycharmProjects/ISP-reID/hrnetv2_w32_imagenet_pretrained.pth'
+  PRETRAIN_PATH: '/home/liyirui/PycharmProjects/ISP-reID/log/ISP-Duke-7-epoch-120-backup/HRNet32_model_120.pth'
   METRIC_LOSS_TYPE: 'triplet'
   IF_LABELSMOOTH: 'on'
   IF_WITH_CENTER: 'on'
@@ -62,7 +62,7 @@ CLUSTERING:
   AL: 'Kmeans'
   PERIOD: 2
   STOP: 101
-  PART_NUM: 4
+  PART_NUM: 7
 
 DATASETS:
   NAMES: ('market1501')
@@ -77,7 +77,7 @@ DATALOADER:
 
 SOLVER:
   OPTIMIZER_NAME: 'Adam'
-  MAX_EPOCHS: 120
+  MAX_EPOCHS: 40
   BASE_LR: 0.00035
 
   CLUSTER_MARGIN: 0.3
@@ -105,15 +105,17 @@ SOLVER:
   WARMUP_ITERS: 10
   WARMUP_METHOD: 'linear'
 
-  CHECKPOINT_PERIOD: 10
+  CHECKPOINT_PERIOD: 40
   LOG_PERIOD: 20
-  EVAL_PERIOD: 120
+  EVAL_PERIOD: 40
 
 TEST:
   IMS_PER_BATCH: 1
   RE_RANKING: 'no'
+  WEIGHT: "/home/liyirui/PycharmProjects/ISP-reID/log/ISP-Market-plus-dml-ped12-7-train/HRNet32_model_40.pth"
   NECK_FEAT: 'after'
   FEAT_NORM: 'yes'
   EXPORT_FEATURE: True
+  WITH_ARM: False
 
-OUTPUT_DIR: "./log/ISP-Market-plus-dml-ped12-7-train"
+OUTPUT_DIR: "./log/ISP-Market1501-dml_ped12-7-test"
