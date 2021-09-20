@@ -1,6 +1,7 @@
 # encoding: utf-8
 
 
+import json
 import logging
 
 import torch
@@ -21,6 +22,64 @@ import math
 
 from utils.reid_metric import R1_mAP, R1_mAP_arm
 
+def create_supervised_trainer_with_center_with_angle(model, center_criterion_part, center_criterion_global, center_criterion_fore, optimizer, optimizer_center, loss_fn, cetner_loss_weight, angle_info_dict, 
+                              device=None):
+    """
+    Factory function for creating a trainer for supervised models
+
+    Args:
+        model (`torch.nn.Module`): the model to train
+        optimizer (`torch.optim.Optimizer`): the optimizer to use
+        loss_fn (torch.nn loss function): the loss function to use
+        device (str, optional): device type specification (default: None).
+            Applies to both model and batches.
+
+    Returns:
+        Engine: a trainer engine with supervised update function
+    """
+    if device:
+        model.to(device)
+
+    def _update(engine, batch):
+        model.train()   # 将当前模块设置成训练模式
+        optimizer.zero_grad()
+        optimizer_center.zero_grad()
+        imgs, cls_target, parsing_target, img_paths = batch
+        angle_list = []
+        for img_path in img_paths:
+            img_name = img_path.split("/")[-1].split(".")[0]
+            str_angle = angle_info_dict[img_name]
+            if str_angle == "back_view":
+                angle_list.append(0)
+            elif str_angle == "front_view":
+                angle_list.append(1)
+            elif str_angle == "left_view":
+                angle_list.append(2)
+            else: angle_list.append(3)
+
+        angle_list = torch.tensor(np.array(angle_list))
+        imgs = imgs.cuda()
+        cls_target = cls_target.cuda()
+        angle_list = angle_list.cuda()
+        parsing_target = parsing_target.cuda()
+        cls_score_part, cls_score_global, cls_score_fore, y_part, y_full, y_fore, part_pd_score = model(imgs)
+        loss = loss_fn(cls_score_part, cls_score_global, cls_score_fore, y_part, y_full, y_fore, part_pd_score, cls_target, parsing_target, angle_list=angle_list)
+        loss.backward()
+        optimizer.step()
+        for param in center_criterion_part.parameters():
+            param.grad.data *= (1. / cetner_loss_weight)
+        for param in center_criterion_global.parameters():
+            param.grad.data *= (1. / cetner_loss_weight)
+        for param in center_criterion_fore.parameters():
+            param.grad.data *= (1. / cetner_loss_weight)
+        optimizer_center.step()
+        
+
+        # compute acc
+        acc = ((cls_score_global.max(1)[1] == cls_target).float().mean()+(cls_score_part.max(1)[1] == cls_target).float().mean()+(cls_score_fore.max(1)[1] == cls_target).float().mean())/3.0
+        return loss.item(), acc.item()
+
+    return Engine(_update)
 
 
 def create_supervised_trainer_with_center(model, center_criterion_part, center_criterion_global, center_criterion_fore, optimizer, optimizer_center, loss_fn, cetner_loss_weight,
@@ -45,7 +104,7 @@ def create_supervised_trainer_with_center(model, center_criterion_part, center_c
         model.train()   # 将当前模块设置成训练模式
         optimizer.zero_grad()
         optimizer_center.zero_grad()
-        img, cls_target, parsing_target = batch
+        img, cls_target, parsing_target, _ = batch
         img = img.cuda()
         cls_target = cls_target.cuda()
         parsing_target = parsing_target.cuda()
@@ -89,7 +148,7 @@ def create_supervised_trainer(model, optimizer,  loss_fn,
     def _update(engine, batch):
         model.train()
         optimizer.zero_grad()
-        img, cls_target, parsing_target = batch
+        img, cls_target, parsing_target, _ = batch
         img = img.cuda()
         cls_target = cls_target.cuda()
         parsing_target = parsing_target.cuda()
@@ -142,9 +201,6 @@ def create_supervised_evaluator(model, metrics,
 
     return engine
 
-
-
-    
 
 def compute_features(clustering_loader, model, device, with_arm=False):
     
@@ -264,10 +320,19 @@ def do_train_with_center(
     clustering_stop = cfg.CLUSTERING.STOP
     with_arm = cfg.TEST.WITH_ARM
 
-
     logger = logging.getLogger("reid_baseline.train")
     logger.info("Start training")
-    trainer = create_supervised_trainer_with_center(model, center_criterion_part, center_criterion_global, center_criterion_fore, optimizer, optimizer_center, loss_fn, cfg.SOLVER.CENTER_LOSS_WEIGHT, device=device)
+
+    # decide if need to load angle info
+    if cfg.MODEL.IF_USE_ANGLE:
+        angle_json_file = open(cfg.MODEL.ANGLE_JSON_PATH, "r")
+        angle_info_dict = json.load(angle_json_file)
+        angle_json_file.close()
+        trainer = create_supervised_trainer_with_center_with_angle(model, center_criterion_part, center_criterion_global, center_criterion_fore, optimizer, optimizer_center, 
+                                                                   loss_fn, cfg.SOLVER.CENTER_LOSS_WEIGHT, angle_info_dict, device=device)
+    else:
+        trainer = create_supervised_trainer_with_center(model, center_criterion_part, center_criterion_global, center_criterion_fore, optimizer, optimizer_center, loss_fn, 
+                                                        cfg.SOLVER.CENTER_LOSS_WEIGHT, device=device)
     if with_arm:
         evaluator = create_supervised_evaluator(model, metrics={'r1_mAP': R1_mAP_arm(num_query, max_rank=50, feat_norm=cfg.TEST.FEAT_NORM)}, device=device, with_arm=with_arm)
     else:
@@ -326,10 +391,10 @@ def do_train_with_center(
                 gt_dir = os.path.join(cfg.DATASETS.ROOT_DIR, 'Market-1501', cfg.DATASETS.PREDICTED_GT_SUBDIR)
                 compute_IoU(pred_dir, gt_dir, cfg.CLUSTERING.PART_NUM)
             
-            elif cfg.DATASETS.NAMES=='bikeperson':
-                pred_dir = os.path.join(cfg.DATASETS.ROOT_DIR, 'BikePerson-700', cfg.DATASETS.PSEUDO_LABEL_SUBDIR)
-                gt_dir = os.path.join(cfg.DATASETS.ROOT_DIR, 'BikePerson-700', cfg.DATASETS.PREDICTED_GT_SUBDIR)
-                compute_IoU(pred_dir, gt_dir, cfg.CLUSTERING.PART_NUM)
+            # elif cfg.DATASETS.NAMES=='bikeperson':
+            #     pred_dir = os.path.join(cfg.DATASETS.ROOT_DIR, 'BikePerson-700', cfg.DATASETS.PSEUDO_LABEL_SUBDIR)
+            #     gt_dir = os.path.join(cfg.DATASETS.ROOT_DIR, 'BikePerson-700', cfg.DATASETS.PREDICTED_GT_SUBDIR)
+            #     compute_IoU(pred_dir, gt_dir, cfg.CLUSTERING.PART_NUM)
                  
             elif cfg.DATASETS.NAMES=='dukemtmc':
                 pred_dir = os.path.join(cfg.DATASETS.ROOT_DIR, 'DukeMTMC-reID', cfg.DATASETS.PSEUDO_LABEL_SUBDIR)

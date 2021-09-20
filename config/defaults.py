@@ -225,3 +225,7 @@ _C.TEST.EXPORT_PART_PD_RESULT = False
 # ---------------------------------------------------------------------------- #
 # Path to checkpoint and saved log of trained model
 _C.OUTPUT_DIR = ""
+
+
+_C.MODEL.IF_USE_ANGLE = False
+_C.MODEL.ANGLE_JSON_PATH = ""

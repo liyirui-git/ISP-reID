@@ -7,6 +7,9 @@ MODEL:
   DEVICE_ID: ('2')
   NAME: HRNet32
   
+  IF_USE_ANGLE: True
+  ANGLE_JSON_PATH: "/home/liyirui/PycharmProjects/dataset/BikePerson-700/angle_label.json"
+
   EXTRA:
     FINAL_CONV_KERNEL: 1
     STAGE2:
@@ -116,4 +119,4 @@ TEST:
   NECK_FEAT: 'after'
   FEAT_NORM: 'yes'
 
-OUTPUT_DIR: "./log/ISP-BikePerson-700-280-train-120-7"
+OUTPUT_DIR: "./log/ISP-BikePerson-700-280-train-120-7-angle"
