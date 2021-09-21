@@ -92,7 +92,7 @@ def make_loss_with_center(cfg, num_classes):    # modified by gu
         if len(angle_list) > 0:
             g_angle_loss = angle_loss(y_global, cls_target, angle_list)
             f_angle_loss = angle_loss(y_fore, cls_target, angle_list)
-            return loss + g_angle_loss + f_angle_loss
+            return loss + 0.1*g_angle_loss + 0.1*f_angle_loss
         else:
             return loss
                         
@@ -105,7 +105,7 @@ def angle_loss(feat, cls_target, angle_list):
     for i in range(feat.shape[0]):
         for j in range(i+1, feat.shape[0]):
             if cls_target[i] == cls_target[j] and angle_list[i] != angle_list[j]:
-                g_same_id_diff_angle_loss = g_same_id_diff_angle_loss + F.pairwise_distance(feat[i].unsqueeze(0), feat[j].unsqueeze(0), p=2)
+                same_id_diff_angle_loss = same_id_diff_angle_loss + F.pairwise_distance(feat[i].unsqueeze(0), feat[j].unsqueeze(0), p=2)
             if cls_target[i] != cls_target[j] and angle_list[i] == angle_list[j]:
-                g_diff_id_same_angle_loss = g_diff_id_same_angle_loss + 1 / F.pairwise_distance(feat[i].unsqueeze(0), feat[j].unsqueeze(0), p=2)
-    return diff_id_same_angle_loss + same_id_diff_angle_loss
+                diff_id_same_angle_loss = diff_id_same_angle_loss + 1 / F.pairwise_distance(feat[i].unsqueeze(0), feat[j].unsqueeze(0), p=2)
+    return same_id_diff_angle_loss + diff_id_same_angle_loss
