@@ -4,7 +4,7 @@ MODEL:
   METRIC_LOSS_TYPE: 'triplet'
   IF_LABELSMOOTH: 'on'
   IF_WITH_CENTER: 'on'
-  DEVICE_ID: ('2')
+  DEVICE_ID: ('3')
   NAME: HRNet32
   
   IF_USE_ANGLE: True

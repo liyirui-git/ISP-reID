@@ -7,6 +7,7 @@ FilePath: /liyirui/PycharmProjects/ISP-reID/layers/__init__.py
 # encoding: utf-8
 
 from numpy.lib.function_base import angle
+import torch
 import torch.nn.functional as F
 
 from .triplet_loss import TripletLoss, CrossEntropyLabelSmooth
@@ -90,16 +91,17 @@ def make_loss_with_center(cfg, num_classes):    # modified by gu
         # 如何在计算中使用角度信息做为约束？
         # 目前只是在全局特征和前景特征中加入了角度的距离约束
         if len(angle_list) > 0:
-            g_angle_loss = angle_loss(y_global, cls_target, angle_list)
-            f_angle_loss = angle_loss(y_fore, cls_target, angle_list)
-            return loss + 0.1*g_angle_loss + 0.1*f_angle_loss
+            g_angle_loss = angle_loss(cfg, y_global, cls_target, angle_list)
+            f_angle_loss = angle_loss(cfg, y_fore, cls_target, angle_list)
+            # p_angle_loss = angle_loss(cfg, y_part, cls_target, angle_list)
+            return loss + g_angle_loss + f_angle_loss 
         else:
             return loss
                         
             
     return loss_func, center_criterion_part, center_criterion_global, center_criterion_fore
 
-def angle_loss(feat, cls_target, angle_list):
+def angle_loss(cfg, feat, cls_target, angle_list):
     same_id_diff_angle_loss = 0
     diff_id_same_angle_loss = 0
     for i in range(feat.shape[0]):
@@ -107,5 +109,16 @@ def angle_loss(feat, cls_target, angle_list):
             if cls_target[i] == cls_target[j] and angle_list[i] != angle_list[j]:
                 same_id_diff_angle_loss = same_id_diff_angle_loss + F.pairwise_distance(feat[i].unsqueeze(0), feat[j].unsqueeze(0), p=2)
             if cls_target[i] != cls_target[j] and angle_list[i] == angle_list[j]:
-                diff_id_same_angle_loss = diff_id_same_angle_loss + 1 / F.pairwise_distance(feat[i].unsqueeze(0), feat[j].unsqueeze(0), p=2)
-    return same_id_diff_angle_loss + diff_id_same_angle_loss
+                distance = F.pairwise_distance(feat[i].unsqueeze(0), feat[j].unsqueeze(0), p=2)
+                diff_id_same_angle_loss = diff_id_same_angle_loss + torch.exp(-1*distance)
+    
+    same_id_diff_angle_loss = cfg.MODEL.SAME_ID_DIFF_VIEW_WEIGHT * same_id_diff_angle_loss
+    diff_id_same_angle_loss = cfg.MODEL.DIFF_ID_SAME_VIEW_WEIGHT * diff_id_same_angle_loss
+
+    loss = 0
+    if cfg.MODEL.SAME_ID_DIFF_VIEW:
+        loss = loss + same_id_diff_angle_loss
+    if cfg.MODEL.DIFF_ID_SAME_VIEW:
+        loss = loss + diff_id_same_angle_loss
+
+    return loss

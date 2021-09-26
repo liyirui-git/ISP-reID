@@ -4,7 +4,7 @@ MODEL:
   METRIC_LOSS_TYPE: 'triplet'
   IF_LABELSMOOTH: 'on'
   IF_WITH_CENTER: 'on'
-  DEVICE_ID: ('0')
+  DEVICE_ID: ('1')
   NAME: HRNet32
   
   EXTRA:
@@ -112,10 +112,10 @@ SOLVER:
 TEST:
   IMS_PER_BATCH: 1
   RE_RANKING: 'no'
-  WEIGHT: "/home/liyirui/PycharmProjects/ISP-reID/log/ISP-bikeperson-7-mixed-0_10-train-4-backup/HRNet32_model_80.pth"
+  WEIGHT: "/home/liyirui/PycharmProjects/ISP-reID/log/ISP-BikePerson-700-train-120-7-angle-12-backup/HRNet32_model_110.pth"
   NECK_FEAT: 'after'
   FEAT_NORM: 'yes'
-  EXPORT_FEATURE: False
-  EXPORT_PART_PD_RESULT: True
+  EXPORT_FEATURE: True
+  EXPORT_PART_PD_RESULT: False
 
-OUTPUT_DIR: "./log/ISP-bikeperson-7-mixed-0_10-train-4-test"
+OUTPUT_DIR: "./log/ISP-bikeperson-700-same-id-diff-view-0_1-test"

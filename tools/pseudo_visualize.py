@@ -1,3 +1,9 @@
+'''
+Author: Li, Yirui
+Date: 2021-07-13
+Description: 
+FilePath: /liyirui/PycharmProjects/ISP-reID/tools/pseudo_visualize.py
+'''
 #!/usr/bin/env python
 # -*- encoding: utf-8 -*-
 
@@ -45,7 +51,7 @@ def get_palette(num_cls):
     return palette
 
 
-def main():
+if __name__ == '__main__':
     args = get_arguments()
 
     num_part = args.num_part
@@ -68,8 +74,3 @@ def main():
         fusion_img = Image.blend(orig_img, parsing_result, 0.5)
         fusion_img.save(os.path.join(visualization_dir, pseudo_labels))
 
-    return
-
-
-if __name__ == '__main__':
-    main()
