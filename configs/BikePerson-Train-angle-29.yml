@@ -4,16 +4,16 @@ MODEL:
   METRIC_LOSS_TYPE: 'triplet'
   IF_LABELSMOOTH: 'on'
   IF_WITH_CENTER: 'on'
-  DEVICE_ID: ('2')
+  DEVICE_ID: ('3')
   NAME: HRNet32
   
   IF_USE_ANGLE: True
   IF_USE_ANGLE_MARGIN: True
   ANGLE_JSON_PATH: "/home/liyirui/PycharmProjects/dataset/BikePerson-700/angle_label.json"
-  SAME_ID_DIFF_VIEW: False
+  SAME_ID_DIFF_VIEW: True
   SAME_ID_DIFF_VIEW_WEIGHT: 0.1
-  SAME_ID_DIFF_VIEW_MARGIN: 0.0
-  DIFF_ID_SAME_VIEW: True
+  SAME_ID_DIFF_VIEW_MARGIN: 0.01
+  DIFF_ID_SAME_VIEW: False
   DIFF_ID_SAME_VIEW_WEIGHT: 0.1
   DIFF_ID_SAME_VIEW_MARGIN: 0.4
 
@@ -76,7 +76,7 @@ CLUSTERING:
 
 DATASETS:
   NAMES: ('bikeperson')
-  PSEUDO_LABEL_SUBDIR: ('train_pseudo_labels-ISP-7-28')
+  PSEUDO_LABEL_SUBDIR: ('train_pseudo_labels-ISP-7-29')
   PREDICTED_GT_SUBDIR: ('bounding_box_train_parsing_pgt')
   ROOT_DIR: ('/home/liyirui/PycharmProjects/dataset/')
 
@@ -87,7 +87,7 @@ DATALOADER:
 
 SOLVER:
   OPTIMIZER_NAME: 'Adam'
-  MAX_EPOCHS: 120
+  MAX_EPOCHS: 150
   BASE_LR: 0.00035
 
   CLUSTER_MARGIN: 0.3
@@ -126,4 +126,4 @@ TEST:
   NECK_FEAT: 'after'
   FEAT_NORM: 'yes'
 
-OUTPUT_DIR: "./log/ISP-BikePerson-700-train-120-7-angle-28"
+OUTPUT_DIR: "./log/ISP-BikePerson-700-train-150-7-angle-29"

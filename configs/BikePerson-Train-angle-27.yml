@@ -4,7 +4,7 @@ MODEL:
   METRIC_LOSS_TYPE: 'triplet'
   IF_LABELSMOOTH: 'on'
   IF_WITH_CENTER: 'on'
-  DEVICE_ID: ('2')
+  DEVICE_ID: ('0')
   NAME: HRNet32
   
   IF_USE_ANGLE: True
@@ -14,7 +14,7 @@ MODEL:
   SAME_ID_DIFF_VIEW_WEIGHT: 0.1
   SAME_ID_DIFF_VIEW_MARGIN: 0.0
   DIFF_ID_SAME_VIEW: True
-  DIFF_ID_SAME_VIEW_WEIGHT: 0.1
+  DIFF_ID_SAME_VIEW_WEIGHT: 0.2
   DIFF_ID_SAME_VIEW_MARGIN: 0.4
 
   EXTRA:
@@ -76,7 +76,7 @@ CLUSTERING:
 
 DATASETS:
   NAMES: ('bikeperson')
-  PSEUDO_LABEL_SUBDIR: ('train_pseudo_labels-ISP-7-28')
+  PSEUDO_LABEL_SUBDIR: ('train_pseudo_labels-ISP-7-27')
   PREDICTED_GT_SUBDIR: ('bounding_box_train_parsing_pgt')
   ROOT_DIR: ('/home/liyirui/PycharmProjects/dataset/')
 
@@ -126,4 +126,4 @@ TEST:
   NECK_FEAT: 'after'
   FEAT_NORM: 'yes'
 
-OUTPUT_DIR: "./log/ISP-BikePerson-700-train-120-7-angle-28"
+OUTPUT_DIR: "./log/ISP-BikePerson-700-280-train-120-7-angle-27"

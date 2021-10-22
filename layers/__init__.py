@@ -119,7 +119,7 @@ def angle_loss(cfg, feat, cls_target, angle_list):
     
     same_id_diff_angle_loss = cfg.MODEL.SAME_ID_DIFF_VIEW_WEIGHT * same_id_diff_angle_loss
     diff_id_same_angle_loss = cfg.MODEL.DIFF_ID_SAME_VIEW_WEIGHT * diff_id_same_angle_loss
-
+    
     loss = 0
     if cfg.MODEL.SAME_ID_DIFF_VIEW:
         loss = loss + same_id_diff_angle_loss
@@ -131,22 +131,28 @@ def angle_loss(cfg, feat, cls_target, angle_list):
 def margin_angle_loss(cfg, feat, cls_target, angle_list):
     same_id_diff_angle_loss = 0
     diff_id_same_angle_loss = 0
+    same_id_same_angle_loss = 0
     for i in range(feat.shape[0]):
         for j in range(i+1, feat.shape[0]):
+            distance = F.pairwise_distance(feat[i].unsqueeze(0), feat[j].unsqueeze(0), p=2)
             if cls_target[i] == cls_target[j] and angle_list[i] != angle_list[j]:
-                distance = F.pairwise_distance(feat[i].unsqueeze(0), feat[j].unsqueeze(0), p=2)
                 same_id_diff_angle_loss = same_id_diff_angle_loss + max(0, distance - cfg.MODEL.SAME_ID_DIFF_VIEW_MARGIN)
             if cls_target[i] != cls_target[j] and angle_list[i] == angle_list[j]:
-                distance = F.pairwise_distance(feat[i].unsqueeze(0), feat[j].unsqueeze(0), p=2)
                 diff_id_same_angle_loss = diff_id_same_angle_loss + max(0, cfg.MODEL.DIFF_ID_SAME_VIEW_MARGIN - distance)
-    
+            # 同id同视角直接拉近，这里是合理的，不用margin
+            if cls_target[i] == cls_target[j] and angle_list[i] == angle_list[j]:
+                same_id_same_angle_loss = same_id_same_angle_loss + distance
+
     same_id_diff_angle_loss = cfg.MODEL.SAME_ID_DIFF_VIEW_WEIGHT * same_id_diff_angle_loss
     diff_id_same_angle_loss = cfg.MODEL.DIFF_ID_SAME_VIEW_WEIGHT * diff_id_same_angle_loss
+    # 同id同视角拉近配合不同id同视角拉远一起使用，所以这里让他们暂时共享权重
+    same_id_same_angle_loss = cfg.MODEL.DIFF_ID_SAME_VIEW_WEIGHT * same_id_same_angle_loss
 
     loss = 0
     if cfg.MODEL.SAME_ID_DIFF_VIEW:
         loss = loss + same_id_diff_angle_loss
     if cfg.MODEL.DIFF_ID_SAME_VIEW:
         loss = loss + diff_id_same_angle_loss
+        loss = loss + same_id_same_angle_loss
 
     return loss
