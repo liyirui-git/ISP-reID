@@ -4,7 +4,7 @@ MODEL:
   METRIC_LOSS_TYPE: 'triplet'
   IF_LABELSMOOTH: 'on'
   IF_WITH_CENTER: 'on'
-  DEVICE_ID: ('0')
+  DEVICE_ID: ('1')
   NAME: HRNet32
   
   EXTRA:
@@ -65,11 +65,11 @@ CLUSTERING:
   PART_NUM: 7
 
 DATASETS:
-  NAMES: 'bikeperson_ver'
+  NAMES: ('bikeperson')
   PSEUDO_LABEL_SUBDIR: ('train_pseudo_labels-ISP-7')
   PREDICTED_GT_SUBDIR: ('bounding_box_train_parsing_pgt')
   ROOT_DIR: ('/home/liyirui/PycharmProjects/dataset/')
-
+  
 DATALOADER:
   SAMPLER: 'softmax_triplet'
   NUM_INSTANCE: 4
@@ -110,12 +110,12 @@ SOLVER:
   EVAL_PERIOD: 40
 
 TEST:
-  IMS_PER_BATCH: 128
+  IMS_PER_BATCH: 1
   RE_RANKING: 'no'
   WEIGHT: "/home/liyirui/PycharmProjects/ISP-reID/log/ISP-bikeperson-7-120-backup/HRNet32_model_120.pth"
   NECK_FEAT: 'after'
   FEAT_NORM: 'yes'
-  EXPORT_FEATURE: False
+  EXPORT_FEATURE: True
   EXPORT_PART_PD_RESULT: False
 
 OUTPUT_DIR: "./log/ISP-BikePerson-700-train-120-7-test"

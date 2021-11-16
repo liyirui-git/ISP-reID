@@ -11,7 +11,7 @@ from .bases import BaseImageDataset
 import numpy as np
 
 
-class BikePerson(BaseImageDataset):
+class BikePerson_Verification(BaseImageDataset):
     '''
     Bike-Person
     Reference:
@@ -21,10 +21,10 @@ class BikePerson(BaseImageDataset):
     Dataset statistics:
         - identities: 4579
     '''
-    dataset_dir = 'BikePerson-700-origin'
+    dataset_dir = 'BikePerson-700-recolor-pedestrians'
 
     def __init__(self, root='/data2/kzhu/', pseudo_label_subdir='train_mask_annotations', part_num=6, verbose=True, **kwargs):
-        super(BikePerson, self).__init__()
+        super(BikePerson_Verification, self).__init__()
         self.dataset_dir = osp.join(root, self.dataset_dir)
         self.train_dir = osp.join(self.dataset_dir, 'bounding_box_train')
         self.query_dir = osp.join(self.dataset_dir, 'query')

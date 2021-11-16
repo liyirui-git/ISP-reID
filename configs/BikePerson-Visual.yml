@@ -113,10 +113,10 @@ SOLVER:
 TEST:
   IMS_PER_BATCH: 1
   RE_RANKING: 'no'
-  WEIGHT: "/home/liyirui/PycharmProjects/ISP-reID/log/ISP-bikeperson-7-120-backup/HRNet32_model_120.pth"
+  WEIGHT: "/home/liyirui/PycharmProjects/ISP-reID/log/ISP-BikePerson-700-train-140-7-angle-new-55-new-backup/HRNet32_model_100.pth"
   NECK_FEAT: 'after'
   FEAT_NORM: 'yes'
   EXPORT_FEATURE: True
   EXPORT_PART_PD_RESULT: False
 
-OUTPUT_DIR: "./log/ISP-bikeperson-700-same-id-diff-view-0_1-test-backup"
+OUTPUT_DIR: "./log/ISP-BikePerson-700-train-140-7-angle-new-55-new-test"

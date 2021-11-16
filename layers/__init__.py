@@ -91,15 +91,21 @@ def make_loss_with_center(cfg, num_classes):    # modified by gu
         # 如何在计算中使用角度信息做为约束？
         # 目前只是在全局特征和前景特征中加入了角度的距离约束
         if len(angle_list) > 0:
+            p_angle_loss = 0
             if cfg.MODEL.IF_USE_ANGLE_MARGIN:
-                g_angle_loss = margin_angle_loss(cfg, y_global, cls_target, angle_list)
-                f_angle_loss = margin_angle_loss(cfg, y_fore, cls_target, angle_list)
-                # p_angle_loss = margin_angle_loss(cfg, y_part, cls_target, angle_list)
+                if cfg.MODEL.IF_USE_MULTI_ANGLE_MARGIN:
+                    g_angle_loss = margin_multi_angle_loss(cfg, y_global, cls_target, angle_list)
+                    f_angle_loss = margin_multi_angle_loss(cfg, y_fore, cls_target, angle_list)
+                    # p_angle_loss = margin_multi_angle_loss(cfg, y_part, cls_target, angle_list)
+                else:
+                    g_angle_loss = margin_angle_loss(cfg, y_global, cls_target, angle_list)
+                    f_angle_loss = margin_angle_loss(cfg, y_fore, cls_target, angle_list)
+                    # p_angle_loss = margin_angle_loss(cfg, y_part, cls_target, angle_list)
             else:
                 g_angle_loss = angle_loss(cfg, y_global, cls_target, angle_list)
                 f_angle_loss = angle_loss(cfg, y_fore, cls_target, angle_list)
                 # p_angle_loss = angle_loss(cfg, y_part, cls_target, angle_list)
-            return loss + g_angle_loss + f_angle_loss 
+            return loss + g_angle_loss + f_angle_loss + p_angle_loss
         else:
             return loss
                         
@@ -145,14 +151,50 @@ def margin_angle_loss(cfg, feat, cls_target, angle_list):
 
     same_id_diff_angle_loss = cfg.MODEL.SAME_ID_DIFF_VIEW_WEIGHT * same_id_diff_angle_loss
     diff_id_same_angle_loss = cfg.MODEL.DIFF_ID_SAME_VIEW_WEIGHT * diff_id_same_angle_loss
-    # 同id同视角拉近配合不同id同视角拉远一起使用，所以这里让他们暂时共享权重
-    same_id_same_angle_loss = cfg.MODEL.DIFF_ID_SAME_VIEW_WEIGHT * same_id_same_angle_loss
+    same_id_same_angle_loss = cfg.MODEL.SAME_ID_SAME_VIEW_WEIGHT * same_id_same_angle_loss
 
     loss = 0
     if cfg.MODEL.SAME_ID_DIFF_VIEW:
         loss = loss + same_id_diff_angle_loss
     if cfg.MODEL.DIFF_ID_SAME_VIEW:
         loss = loss + diff_id_same_angle_loss
+    if cfg.MODEL.SAME_ID_SAME_VIEW:
         loss = loss + same_id_same_angle_loss
 
     return loss
+
+def margin_multi_angle_loss(cfg, feat, cls_target, angle_list):
+    '''
+    angle_list:
+        back = 0, front = 1, left = 2, right = 3
+    '''
+    same_id_same_angle_loss = 0
+    same_id_neighbor_angle_loss = 0
+    same_id_diff_angle_loss = 0
+    diff_id_same_angle_loss = 0
+    for i in range(feat.shape[0]):
+        for j in range(i+1, feat.shape[0]):
+            distance = F.pairwise_distance(feat[i].unsqueeze(0), feat[j].unsqueeze(0), p=2)
+            if cls_target[i] == cls_target[j]: 
+                if angle_list[i] == angle_list[j]:
+                    same_id_same_angle_loss = same_id_same_angle_loss + max(0, distance - cfg.MODEL.MULTI_SAME_ID_SAME_VIEW_MARGIN)
+                elif is_neighbor_angle(angle_list[i], angle_list[j]):
+                    same_id_neighbor_angle_loss = same_id_neighbor_angle_loss + max(0, distance - cfg.MODEL.MULTI_SAME_ID_NEIGHBOR_VIEW_MARGIN)
+                else:
+                    same_id_diff_angle_loss = same_id_diff_angle_loss + max(0, distance - cfg.MODEL.MULTI_SAME_ID_DIFF_VIEW_MARGIN)
+            if cls_target[i] != cls_target[j] and angle_list[i] == angle_list[j]:
+                diff_id_same_angle_loss = diff_id_same_angle_loss + max(0, cfg.MODEL.MULTI_DIFF_ID_SAME_VIEW_MARGIN - distance)
+    
+    same_id_same_angle_loss = cfg.MODEL.MULTI_SAME_ID_SAME_VIEW_WEIGHT * same_id_same_angle_loss
+    same_id_neighbor_angle_loss = cfg.MODEL.MULTI_SAME_ID_NEIGHBOR_VIEW_WEIGHT * same_id_neighbor_angle_loss
+    same_id_diff_angle_loss = cfg.MODEL.MULTI_SAME_ID_DIFF_VIEW_WEIGHT * same_id_diff_angle_loss
+    diff_id_same_angle_loss = cfg.MODEL.MULTI_DIFF_ID_SAME_VIEW_WEIGHT * diff_id_same_angle_loss
+
+    return same_id_same_angle_loss + same_id_neighbor_angle_loss + same_id_diff_angle_loss + diff_id_same_angle_loss
+            
+def is_neighbor_angle(a, b):
+    if a == 0 and (b == 2 or b == 3): return True
+    elif a == 1 and (b == 2 or b == 3): return True
+    elif a == 2 and (b == 1 or b == 0): return True
+    elif a == 3 and (b == 1 or b == 0): return True
+    else: return False

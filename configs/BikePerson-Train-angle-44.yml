@@ -1,12 +1,22 @@
 MODEL:
   PRETRAIN_CHOICE: 'imagenet'
-  PRETRAIN_PATH: '/home/liyirui/PycharmProjects/ISP-reID/log/ISP-Duke-7-epoch-120-backup/HRNet32_model_120.pth'
+  PRETRAIN_PATH: '/home/liyirui/PycharmProjects/ISP-reID/hrnetv2_w32_imagenet_pretrained.pth'
   METRIC_LOSS_TYPE: 'triplet'
   IF_LABELSMOOTH: 'on'
   IF_WITH_CENTER: 'on'
   DEVICE_ID: ('0')
   NAME: HRNet32
   
+  IF_USE_ANGLE: True
+  IF_USE_ANGLE_MARGIN: True
+  ANGLE_JSON_PATH: "/home/liyirui/PycharmProjects/dataset/BikePerson-700/angle_label.json"
+  SAME_ID_DIFF_VIEW: False
+  SAME_ID_DIFF_VIEW_WEIGHT: 0.1
+  SAME_ID_DIFF_VIEW_MARGIN: 0.0
+  DIFF_ID_SAME_VIEW: False
+  DIFF_ID_SAME_VIEW_WEIGHT: 0.1
+  DIFF_ID_SAME_VIEW_MARGIN: 0.5
+
   EXTRA:
     FINAL_CONV_KERNEL: 1
     STAGE2:
@@ -65,8 +75,8 @@ CLUSTERING:
   PART_NUM: 7
 
 DATASETS:
-  NAMES: 'bikeperson_ver'
-  PSEUDO_LABEL_SUBDIR: ('train_pseudo_labels-ISP-7')
+  NAMES: ('bikeperson')
+  PSEUDO_LABEL_SUBDIR: ('train_pseudo_labels-ISP-7-44')
   PREDICTED_GT_SUBDIR: ('bounding_box_train_parsing_pgt')
   ROOT_DIR: ('/home/liyirui/PycharmProjects/dataset/')
 
@@ -77,7 +87,7 @@ DATALOADER:
 
 SOLVER:
   OPTIMIZER_NAME: 'Adam'
-  MAX_EPOCHS: 120
+  MAX_EPOCHS: 140
   BASE_LR: 0.00035
 
   CLUSTER_MARGIN: 0.3
@@ -105,17 +115,15 @@ SOLVER:
   WARMUP_ITERS: 10
   WARMUP_METHOD: 'linear'
 
-  CHECKPOINT_PERIOD: 40
+  CHECKPOINT_PERIOD: 10
   LOG_PERIOD: 20
-  EVAL_PERIOD: 40
+  EVAL_PERIOD: 10
 
 TEST:
   IMS_PER_BATCH: 128
   RE_RANKING: 'no'
-  WEIGHT: "/home/liyirui/PycharmProjects/ISP-reID/log/ISP-bikeperson-7-120-backup/HRNet32_model_120.pth"
+  WEIGHT: "/home/liyirui/PycharmProjects/ISP-reID/log/ISP-market-4-120/HRNet32_model_120.pth"
   NECK_FEAT: 'after'
   FEAT_NORM: 'yes'
-  EXPORT_FEATURE: False
-  EXPORT_PART_PD_RESULT: False
 
-OUTPUT_DIR: "./log/ISP-BikePerson-700-train-120-7-test"
+OUTPUT_DIR: "./log/ISP-BikePerson-700-mixed-0_1-schp-seg-train-140-7-no-angle-44"
